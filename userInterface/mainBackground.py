@@ -207,14 +207,16 @@ class MainFrame(QMainWindow, Ui_ManagementApp):
             conn = sqlite3.connect('user_data_ia.db')
             cursor = conn.cursor()
             cursor2 = conn.cursor()
-            ing=[]
-            ingNum=[]
+
             validMenu = []
-            haveStore= True
+
             #This gets the menu names
             cursor.execute('SELECT name FROM menu_ingredients GROUP BY name')
             #looping all menus for comparing
             for mNames in cursor.fetchall():
+                ing = []
+                ingNum = []
+                haveStore = []
                 # getting the ingredients needed for the menu
                 cursor2.execute('SELECT ingredient, ingredient_num FROM menu_ingredients WHERE name = ?',
                                (mNames[0],))
@@ -226,23 +228,23 @@ class MainFrame(QMainWindow, Ui_ManagementApp):
                 cursor.execute('SELECT g_name FROM groceries GROUP BY g_name')
                 avGro = [g[0] for g in cursor.fetchall()]
                 #loop all needed ingredients
-                for j in range(len(ing)):
+                i=0
+                for j in ing:
                     #loops all groceries
-                    for a in range(len(avGro)):
+                    for a in avGro:
                         #if the name is found
-                        if avGro[j].lower() == ing[a].lower(): #finding if there is matching ingredients
+                        if j.lower() == a.lower(): #finding if there is matching ingredients
                             cursor.execute('SELECT SUM(g_num) FROM groceries WHERE g_name = ? GROUP BY g_name',
-                                           (ing[a],)) #getting the total stock of such ingredients
+                                           (a,)) #getting the total stock of such ingredients
                             storageNum = int(cursor.fetchone()[0])
-                            if storageNum < int(ingNum[a]): #ensuring there is stock
-                                haveStore=False
-                            else:
-                                pass
-                if haveStore == True:
+                            if storageNum > int(ingNum[i]): #ensuring there is stock
+                                haveStore.append(True)
+                        i=i+1
+                if len(haveStore)== len(ing):
                     validMenu.append(mNames)#adding the name into list of usable menues
 
             conn.commit()
-            if len(validMenu)<1: #no menu is usable
+            if len(validMenu)== 0: #no menu is usable
                 error=False
                 return error
             else:
@@ -255,10 +257,11 @@ class MainFrame(QMainWindow, Ui_ManagementApp):
     def refreshRec(self):
         try:
             names=self.getRec()
-            if names == False:
+            if names== False:
                 noRec = (
                     'There is no recommendations available currently, please purchase more groceries or add menus')
                 TOOLS.messageBox(self, noRec)
+
             else:
                 container = QtWidgets.QWidget()
                 layout = QtWidgets.QVBoxLayout()
@@ -292,6 +295,7 @@ class MainFrame(QMainWindow, Ui_ManagementApp):
             menuName = str(self.recMenuName.text())
             ing=[]
             ingNum=[]
+            count=0
             if menuName == 'Menu Name':
                 TOOLS.messageBox(self,'Do not click apply without selecting a menu to apply')
             else:
@@ -307,6 +311,12 @@ class MainFrame(QMainWindow, Ui_ManagementApp):
                     cursor.execute('UPDATE groceries SET g_num = ? WHERE id=(SELECT id FROM groceries WHERE g_name = ? ORDER BY id ASC LIMIT 1)',
                                    (gNum,ing[i].lower(),))
                     conn.commit()
+                    count = count + cursor.rowcount
+                if count == len(ing):
+                    TOOLS.messageBox(self, 'Updated '+menuName+' successfully.')
+                else:
+                    TOOLS.messageBox(self, 'Failed to update ' + menuName)
+
 
         except Exception as e:
             errorMsg = f"An error occurred: {str(e)}"
