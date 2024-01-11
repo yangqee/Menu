@@ -126,7 +126,7 @@ class AddMenu(QMainWindow, Ui_AddMenuFrame):
                     if os.path.exists(self.destination_path):
                         uploadSuc = 'Upload Success!'
                         TOOLS.messageBox(self, uploadSuc)
-                        return self.destination_path
+                        return ''
                     else:
                         uploadFail = 'Upload Failed'
                         TOOLS.messageBox(self, uploadFail)

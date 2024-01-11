@@ -53,11 +53,14 @@ class MainFrame(QMainWindow, Ui_ManagementApp):
         newWinAdd.show()
 
     def delMenu(self):
-        conn = sqlite3.connect('user_data_ia.db')
-        cursor = conn.cursor()
-        cursor.execute('DELETE FROM menues WHERE name=?', (self.menuName.text(),))
-        conn.commit()
-        self.showMenu()
+        if self.menuName.text() == 'Menu Name':
+            TOOLS.messageBox(self, 'Please select a menu to delete')
+        else:
+            conn = sqlite3.connect('user_data_ia.db')
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM menues WHERE name=?', (self.menuName.text(),))
+            conn.commit()
+            self.showMenu()
 
     def showMenu(self):
         conn = sqlite3.connect('user_data_ia.db')
@@ -149,17 +152,30 @@ class MainFrame(QMainWindow, Ui_ManagementApp):
         newWinAdd.show()
 
     def editGroceries(self):
-        self.closeWin()
-        selected_gro_name = self.getGroName()  # 获取当前选中的 gro_name
-        newWinEdit = editGroceryBackground.EditGroceryFrame(selected_gro_name, self)
-        newWinEdit.show()
+        try:
+            if self.getGroName() == 'Grocery Name':
+                TOOLS.messageBox(self, 'There are no groceries selected for editing')
+            else:
+                self.closeWin()
+                selected_gro_name = self.getGroName()  # 获取当前选中的 gro_name
+                newWinEdit = editGroceryBackground.EditGroceryFrame(selected_gro_name, self)
+                newWinEdit.show()
+
+        except Exception as e:
+            errorMsg = f"An error occurred: {str(e)}"
+            TOOLS.messageBox(self, errorMsg)
+            return ''
+
 
     def deleteGroceries(self):
-        conn = sqlite3.connect('user_data_ia.db')
-        cursor = conn.cursor()
-        cursor.execute('DELETE FROM groceries WHERE g_name=?', (self.groceryName.text(),))
-        conn.commit()
-        self.showGro()
+        if self.groceryName.text() == 'Grocery Name':
+            TOOLS.messageBox(self, 'Please select a grocery to delete')
+        else:
+            conn = sqlite3.connect('user_data_ia.db')
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM groceries WHERE g_name=?', (self.groceryName.text(),))
+            conn.commit()
+            self.showGro()
 
     def displayGro(self):
         conn = sqlite3.connect('user_data_ia.db')
@@ -212,43 +228,47 @@ class MainFrame(QMainWindow, Ui_ManagementApp):
 
             #This gets the menu names
             cursor.execute('SELECT name FROM menu_ingredients GROUP BY name')
-            #looping all menus for comparing
-            for mNames in cursor.fetchall():
-                ing = []
-                ingNum = []
-                haveStore = []
-                # getting the ingredients needed for the menu
-                cursor2.execute('SELECT ingredient, ingredient_num FROM menu_ingredients WHERE name = ?',
-                               (mNames[0],))
-                x=0
-                #sorting into ingredient and ingredient nums
-                for alling in cursor2.fetchall():
-                    ing.append(alling[0]) #adding the ingredient names
-                    ingNum.append(alling[1]) #adding the ingredient numbers
-                cursor.execute('SELECT g_name FROM groceries GROUP BY g_name')
-                avGro = [g[0] for g in cursor.fetchall()]
-                #loop all needed ingredients
-                i=0
-                for j in ing:
-                    #loops all groceries
-                    for a in avGro:
-                        #if the name is found
-                        if j.lower() == a.lower(): #finding if there is matching ingredients
-                            cursor.execute('SELECT SUM(g_num) FROM groceries WHERE g_name = ? GROUP BY g_name',
-                                           (a,)) #getting the total stock of such ingredients
-                            storageNum = int(cursor.fetchone()[0])
-                            if storageNum > int(ingNum[i]): #ensuring there is stock
-                                haveStore.append(True)
-                        i=i+1
-                if len(haveStore)== len(ing):
-                    validMenu.append(mNames)#adding the name into list of usable menues
+            if cursor.fetchall():
+                #looping all menus for comparing
+                for mNames in cursor.fetchall():
+                    ing = []
+                    ingNum = []
+                    haveStore = []
+                    # getting the ingredients needed for the menu
+                    cursor2.execute('SELECT ingredient, ingredient_num FROM menu_ingredients WHERE name = ?',
+                                   (mNames[0],))
+                    x=0
+                    #sorting into ingredient and ingredient nums
+                    for alling in cursor2.fetchall():
+                        ing.append(alling[0]) #adding the ingredient names
+                        ingNum.append(alling[1]) #adding the ingredient numbers
+                    cursor.execute('SELECT g_name FROM groceries GROUP BY g_name')
+                    avGro = [g[0] for g in cursor.fetchall()]
+                    #loop all needed ingredients
+                    i=0
+                    for j in ing:
+                        #loops all groceries
+                        for a in avGro:
+                            #if the name is found
+                            if j.lower() == a.lower(): #finding if there is matching ingredients
+                                cursor.execute('SELECT SUM(g_num) FROM groceries WHERE g_name = ? GROUP BY g_name',
+                                               (a,)) #getting the total stock of such ingredients
+                                storageNum = int(cursor.fetchone()[0])
+                                if storageNum > int(ingNum[i]): #ensuring there is stock
+                                    haveStore.append(True)
+                            i=i+1
+                    if len(haveStore)== len(ing):
+                        validMenu.append(mNames)#adding the name into list of usable menues
 
-            conn.commit()
-            if len(validMenu)== 0: #no menu is usable
-                error=False
-                return error
+                conn.commit()
+                if len(validMenu)== 0: #no menu is usable
+                    noRec = ('There is no recommendations available currently, please purchase more groceries or add menus')
+                    TOOLS.messageBox(self, noRec)
+                    return
+                else:
+                    return validMenu # return the usable list
             else:
-                return validMenu # return the usable list
+                TOOLS.messageBox(self,'There are no menus, please go add some')
 
         except Exception as e:
             errorMsg = f"An error occurred: {str(e)}"
@@ -257,12 +277,7 @@ class MainFrame(QMainWindow, Ui_ManagementApp):
     def refreshRec(self):
         try:
             names=self.getRec()
-            if names== False:
-                noRec = (
-                    'There is no recommendations available currently, please purchase more groceries or add menus')
-                TOOLS.messageBox(self, noRec)
-
-            else:
+            if names:
                 container = QtWidgets.QWidget()
                 layout = QtWidgets.QVBoxLayout()
 
