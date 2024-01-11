@@ -31,16 +31,22 @@ class MainFrame(QMainWindow, Ui_ManagementApp):
         self.applyRecBtn.clicked.connect(self.applyRec)
     #     self.searchBox_M.installEventFilter(self)
     #
+    #
     # def eventFilter(self, obj, event):
-    #     # if obj is self.searchBox_M and event.type() == Qt.Type.KeyPress:
-    #     #     if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
-    #     #         self.onEnterPressed()
-    #     #         return True
+        # if obj is self.searchBox_M and event.type() == Qt.Type.KeyPress:
+        #     if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+        #         self.onEnterPressed()
+        #         return True
     #     if event.type() == QtCore.QEvent.KeyPress and obj is self.searchBox_M:
     #         if event.key() == QtCore.Qt.Key_Return and self.searchBox_M.hasFocus():
     #             self.onEnterPressed()
-    #             return True
+    #     #         return True
     #     return super().eventFilter(obj, event)
+    # def keyPressEvent(self, event):
+    #     if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+    #         self.searchMenu()
+    #     else:
+    #         super().keyPressEvent(event)
 
 
     def onEnterPressed(self):
@@ -48,20 +54,25 @@ class MainFrame(QMainWindow, Ui_ManagementApp):
 
     # this is the section for the menue iinterfaces
     def addMenu(self):
-        # self.closeWin()
+        self.closeWin()
         newWinAdd = addMenuBackground.AddMenu(self)
         newWinAdd.show()
 
     def delMenu(self):
         if self.menuName.text() == 'Menu Name':
             TOOLS.messageBox(self, 'Please select a menu to delete')
-            return
+            self.closeWin()
+            mainWin = MainFrame(self)
+            mainWin.show()
         else:
             conn = sqlite3.connect('user_data_ia.db')
             cursor = conn.cursor()
             cursor.execute('DELETE FROM menues WHERE name=?', (self.menuName.text(),))
             conn.commit()
-            self.showMenu()
+
+            self.closeWin()
+            mainWin = MainFrame(self)
+            mainWin.show()
 
     def showMenu(self):
         conn = sqlite3.connect('user_data_ia.db')
@@ -152,10 +163,14 @@ class MainFrame(QMainWindow, Ui_ManagementApp):
         newWinAdd = addGroceryBackground.AddGroceryFrame(self)
         newWinAdd.show()
 
+
     def editGroceries(self):
         try:
             if self.getGroName() == 'Grocery Name':
                 TOOLS.messageBox(self, 'There are no groceries selected for editing')
+                self.closeWin()
+                mainWin = MainFrame(self)
+                mainWin.show()
             else:
                 # self.closeWin()
                 selected_gro_name = self.getGroName()  # 获取当前选中的 gro_name
@@ -171,13 +186,17 @@ class MainFrame(QMainWindow, Ui_ManagementApp):
     def deleteGroceries(self):
         if self.groceryName.text() == 'Grocery Name':
             TOOLS.messageBox(self, 'Please select a grocery to delete')
-            return
+            self.closeWin()
+            mainWin = MainFrame(self)
+            mainWin.show()
         else:
             conn = sqlite3.connect('user_data_ia.db')
             cursor = conn.cursor()
             cursor.execute('DELETE FROM groceries WHERE g_name=?', (self.groceryName.text(),))
             conn.commit()
-            self.showGro()
+            self.closeWin()
+            mainWin = MainFrame(self)
+            mainWin.show()
 
     def displayGro(self):
         conn = sqlite3.connect('user_data_ia.db')
@@ -266,11 +285,16 @@ class MainFrame(QMainWindow, Ui_ManagementApp):
                 if len(validMenu)== 0: #no menu is usable
                     noRec = ('There is no recommendations available currently, please purchase more groceries or add menus')
                     TOOLS.messageBox(self, noRec)
-                    return
+                    self.closeWin()
+                    mainWin = MainFrame(self)
+                    mainWin.show()
                 else:
                     return validMenu # return the usable list
             else:
                 TOOLS.messageBox(self,'There are no menus, please go add some')
+                self.closeWin()
+                mainWin = MainFrame(self)
+                mainWin.show()
 
         except Exception as e:
             errorMsg = f"An error occurred: {str(e)}"
@@ -315,6 +339,9 @@ class MainFrame(QMainWindow, Ui_ManagementApp):
             count=0
             if menuName == 'Menu Name':
                 TOOLS.messageBox(self,'Do not click apply without selecting a menu to apply')
+                self.closeWin()
+                mainWin = MainFrame(self)
+                mainWin.show()
             else:
                 cursor.execute('SELECT ingredient, ingredient_num FROM menu_ingredients WHERE name = ?',
                                (menuName,))

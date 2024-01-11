@@ -54,8 +54,8 @@ class AddGroceryFrame(QMainWindow, Ui_AddGroceryFrame):
 
     def back(self):
         self.close()
-        # mainWin = mainBackground.MainFrame(self)
-        # mainWin.show()
+        mainWin = mainBackground.MainFrame(self)
+        mainWin.show()
 
 
 if __name__ == '__main__':
