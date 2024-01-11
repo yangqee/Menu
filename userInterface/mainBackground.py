@@ -41,20 +41,21 @@ class MainFrame(QMainWindow, Ui_ManagementApp):
     #             self.onEnterPressed()
     #             return True
     #     return super().eventFilter(obj, event)
-    #
-    #
-    # def onEnterPressed(self):
-    #     self.searchMenu()
+
+
+    def onEnterPressed(self):
+        self.searchMenu()
 
     # this is the section for the menue iinterfaces
     def addMenu(self):
-        self.closeWin()
+        # self.closeWin()
         newWinAdd = addMenuBackground.AddMenu(self)
         newWinAdd.show()
 
     def delMenu(self):
         if self.menuName.text() == 'Menu Name':
             TOOLS.messageBox(self, 'Please select a menu to delete')
+            return
         else:
             conn = sqlite3.connect('user_data_ia.db')
             cursor = conn.cursor()
@@ -147,7 +148,7 @@ class MainFrame(QMainWindow, Ui_ManagementApp):
 
 
     def addGroceries(self):
-        self.closeWin()
+        # self.closeWin()
         newWinAdd = addGroceryBackground.AddGroceryFrame(self)
         newWinAdd.show()
 
@@ -156,7 +157,7 @@ class MainFrame(QMainWindow, Ui_ManagementApp):
             if self.getGroName() == 'Grocery Name':
                 TOOLS.messageBox(self, 'There are no groceries selected for editing')
             else:
-                self.closeWin()
+                # self.closeWin()
                 selected_gro_name = self.getGroName()  # 获取当前选中的 gro_name
                 newWinEdit = editGroceryBackground.EditGroceryFrame(selected_gro_name, self)
                 newWinEdit.show()
@@ -170,6 +171,7 @@ class MainFrame(QMainWindow, Ui_ManagementApp):
     def deleteGroceries(self):
         if self.groceryName.text() == 'Grocery Name':
             TOOLS.messageBox(self, 'Please select a grocery to delete')
+            return
         else:
             conn = sqlite3.connect('user_data_ia.db')
             cursor = conn.cursor()

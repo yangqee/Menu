@@ -141,8 +141,8 @@ class AddMenu(QMainWindow, Ui_AddMenuFrame):
 
     def back(self):
         self.close()
-        mainWin=mainBackground.MainFrame(self)
-        mainWin.show()
+        # mainWin=mainBackground.MainFrame(self)
+        # mainWin.show()
 
 
 

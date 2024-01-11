@@ -87,8 +87,8 @@ class EditGroceryFrame(QMainWindow, Ui_editGroceryFrame):
         pass
     def back(self):
         self.close()
-        mainWin = mainBackground.MainFrame(self)
-        mainWin.show()
+        # mainWin = mainBackground.MainFrame(self)
+        # mainWin.show()
 
     def showLeftOvers(self):
         if self.areThereLeftovers.isChecked() == True:
